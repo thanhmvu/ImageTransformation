@@ -109,7 +109,7 @@ def rotate(img, angle, crop):
 
 
 # ======================================= Main =======================================
-img = cv2.imread('0.jpg')
+img = cv2.imread('data/0.jpg')
 
 out = rotate(img,20,False)
 
