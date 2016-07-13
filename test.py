@@ -8,6 +8,14 @@ import math
 Python code to rotate an image without cropping
 """
 
+""" This method makes all image to have the same width as a way of standardizing their sizes """
+def sizeStandardize(img,std_width): 
+  height, width = img.shape[:2]
+  ratio = float(height)/width  
+  dim = (std_width, (int)(std_width*ratio)) # calculate new dimensions
+  res = cv2.resize(img,dim)  
+  return res
+
 """ Methods that add a black, square canvas surroung a given image """
 def addCanvas(img, r):
   h,w = img.shape[:2]
@@ -36,7 +44,7 @@ w - the width of the rectangle
 angRt - rotation angle in radian
 """
 def getVertices(h,w,angRt):
-  diag = math.sqrt(h*h + w*w) # Calculate OB
+  diag = math.sqrt(h*h + w*w) / 2 # Calculate OB
   
   # Calculate the angles between OB (top right) and Ox
   angTR1 = math.atan(float(h)/w)
@@ -98,11 +106,13 @@ def rotate(img, angle, crop):
     relativeCorners = getVertices(h,w, math.radians(angle))
     center = (wC/2,hC/2)
     realCorners = [(corner[0]+center[0] , corner[1]+center[1]) for corner in relativeCorners]
-#     print realCorners
-#     print relativeCorners
+    print realCorners
+    print relativeCorners
     
 #     box = surroundingBox(realCorners[0], realCorners[1], realCorners[2], realCorners[3])
-    cv2.rectangle(rtImg, realCorners[0], realCorners[3], (255,0,0),3)
+#     cv2.rectangle(rtImg, realCorners[1], realCorners[2], (255,0,0),3) 
+    for vertex in realCorners:
+        cv2.circle(rtImg, vertex, 20, (0, 255, 0),5)   
   
     return rtImg
 
@@ -110,8 +120,9 @@ def rotate(img, angle, crop):
 
 # ======================================= Main =======================================
 img = cv2.imread('data/0.jpg')
+img = sizeStandardize(img,500)
 
 out = rotate(img,20,False)
 
-cv2.imwrite('r2.jpg', out)
+cv2.imwrite('r.jpg', out)
 
