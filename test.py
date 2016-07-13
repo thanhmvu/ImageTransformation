@@ -30,9 +30,13 @@ The origin of the coordinate plane: O
 The rectangle has its the center at the origin with 4 vertices:
     TopLeft: A, TopRight: B
     BottomL: C, BottomR:  D
+    
+h - the height of the rectangle
+w - the width of the rectangle
+angRt - rotation angle in radian
 """
 def getVertices(h,w,angRt):
-  diag = math.sqrt(h*h + w*w)/2
+  diag = math.sqrt(h*h + w*w) # Calculate OB
   
   # Calculate the angles between OB (top right) and Ox
   angTR1 = math.atan(float(h)/w)
@@ -91,9 +95,11 @@ def rotate(img, angle, crop):
     M = cv2.getRotationMatrix2D((wC/2,hC/2), angle, 1) # (center(x,y),angle,scale)
     rtImg = cv2.warpAffine(imgC,M,(wC,hC))
     
-    relativeCorners = getVertices(h,w,angle)
+    relativeCorners = getVertices(h,w, math.radians(angle))
     center = (wC/2,hC/2)
-    realCorners = [(corner[0]+center[0] , corner[1]+center[1]) for corner in relativeCorners]    
+    realCorners = [(corner[0]+center[0] , corner[1]+center[1]) for corner in relativeCorners]
+#     print realCorners
+#     print relativeCorners
     
 #     box = surroundingBox(realCorners[0], realCorners[1], realCorners[2], realCorners[3])
     cv2.rectangle(rtImg, realCorners[0], realCorners[3], (255,0,0),3)
@@ -107,5 +113,5 @@ img = cv2.imread('0.jpg')
 
 out = rotate(img,20,False)
 
-cv2.imwrite('r1.jpg', out)
+cv2.imwrite('r2.jpg', out)
 
