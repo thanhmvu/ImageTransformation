@@ -50,8 +50,8 @@ def getVertices(h,w,angRt):
   # Calculate the positive angle between OD (bottom right) and Ox
   angBR2 = angTR1 - angRt
   
-  x = int(math.cos(angTR2) * diag)
-  y = int(math.sin(angTR2) * diag)
+  x = int(math.cos(angBR2) * diag)
+  y = int(math.sin(angBR2) * diag)
   vertexBR = (x,y)
   vertexTL = (-x,-y)
   
