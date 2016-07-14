@@ -14,9 +14,9 @@ def addCanvas(img, r):
   # Create a black canvas. to change color: canvas[:,:] = (255,0,0)
   canvas = np.zeros((r,r,3), np.uint8) 
   # Copy img onto canvas
-  y1 = r/2 - h/2 ; y2 = r/2 + h/2
-  x1 = r/2 - w/2 ; x2 = r/2 + w/2
-  canvas[y1:y2,x1:x2] = img
+  y = r/2 - h/2 
+  x = r/2 - w/2
+  canvas[y: y+h, x: x+w] = img
   return canvas
 
 """
