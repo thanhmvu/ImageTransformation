@@ -118,5 +118,13 @@ img = cv2.imread('data/0.jpg')
 
 out = rotate(img,20,False)
 
-cv2.imwrite('r.jpg', out)
+# cv2.imwrite('r.jpg', out)
+
+h,w = out.shape[:2]
+out = cv2.resize(out,(w/2,h/2))
+
+cv2.imshow("out",out)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
 
