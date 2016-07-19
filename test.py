@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import math as m
 from random import randint
+import transformations as trans
 
 """ Experimenting planar perspective transformation """
 
@@ -48,6 +49,7 @@ blue = (255,0,0)
 green = (0,255,0)
 red = (0,0,255)
 white = (255,255,255)
+p = m.pi
 
 
 o = (0,0)
@@ -66,7 +68,6 @@ rec.append([(0,0),(w,0),(w,h),(0,h)])
 # rec.append([transform(pt, sc(2,2)) for pt in rec[0]])
 
 # # combination
-# p = m.pi
 # a = m.radians(45)
 # rec[0] = [transform(pt, tl(-50,-50)) for pt in rec[0]]
 # rec.append([transform(pt, np.array([[ 2*m.cos(a)	, 2*m.sin(a)	, 50],
@@ -88,55 +89,68 @@ rec.append([(0,0),(w,0),(w,h),(0,h)])
 # rec.append(x)
 
 
-# h,w = img.shape[:2]
-# center
-(x0,y0,z0) = (w/2,h/2,0)
-# R = max(w/2,h/2)
 
-### find the plane
-# a point on the half sphere (S): (x-x0)^2 + (y-y0)^2 + (z-z0)^2 = R ^2
-# x1 = randint(x0 - R, x0 + R)
-# tmp = int(m.sqrt(R*R - (x1-x0)**2))
-# y1 = randint(y0 - tmp, y0 + tmp)
-(x1,y1,z1) = (-20,100, 50)
-# z1 = int(m.sqrt(R*R - (x1-x0)**2 - (y1-y0)**2)) + z0 # z >= 0
-# print x1,y1,z1
+# ================================= Orthogonal =====
+# # center
+# (x0,y0,z0) = (w/2,h/2,0)
+# # R = max(w/2,h/2)
 
-# vector n: (x1-x0, y1-y0, z1-z0)
-(Nx,Ny,Nz) = (x1-x0, y1-y0, z1-z0)
-# (P): Nx * (x-x1) + Ny * (y-y1) + Nz * (z-z1) = 0 = ax  + by + cz + d 
-(a,b,c,d) = (Nx, Ny, Nz, -(Nx*x1 + Ny*y1 + Nz*z1))
-# print (a,b,c,d)
+# ### find the plane
+# # a point on the half sphere (S): (x-x0)^2 + (y-y0)^2 + (z-z0)^2 = R ^2
+# # x1 = randint(x0 - R, x0 + R)
+# # tmp = int(m.sqrt(R*R - (x1-x0)**2))
+# # y1 = randint(y0 - tmp, y0 + tmp)
+# (x1,y1,z1) = (-20,100, 50)
+# # z1 = int(m.sqrt(R*R - (x1-x0)**2 - (y1-y0)**2)) + z0 # z >= 0
+# # print x1,y1,z1
 
-def projPoint((x2,y2,z2), (a,b,c,d)):
-	# find the orthogonal projection of any point A onto that plane)
-	# line through A and perpendicular to (P)
-	# x = a*t + x2;  y = b*t + y2 ;  z = c*t + z2
-	# a(at + x2) + b(bt + y2) + c(ct + z2) + d = 0
-	t = float(-d -a*x2 -b*y2 -c*z2)/ (a*a + b*b + c*c)
-	x = a*t + x2
-	y = b*t + y2
-	z = c*t + z2
-	# print (x,y,z)
-	return (x,y,z)
+# # vector n: (x1-x0, y1-y0, z1-z0)
+# (Nx,Ny,Nz) = (x1-x0, y1-y0, z1-z0)
+# # (P): Nx * (x-x1) + Ny * (y-y1) + Nz * (z-z1) = 0 = ax  + by + cz + d 
+# (a,b,c,d) = (Nx, Ny, Nz, -(Nx*x1 + Ny*y1 + Nz*z1))
+# # print (a,b,c,d)
 
-projRec = []
-pt0 = rec[0][0]
-org2D = projPoint((pt0[0],pt0[1],0), (a,b,c,d))
+# def projPoint((x2,y2,z2), (a,b,c,d)):
+# 	# find the orthogonal projection of any point A onto that plane)
+# 	# line through A and perpendicular to (P)
+# 	# x = a*t + x2;  y = b*t + y2 ;  z = c*t + z2
+# 	# a(at + x2) + b(bt + y2) + c(ct + z2) + d = 0
+# 	t = float(-d -a*x2 -b*y2 -c*z2)/ (a*a + b*b + c*c)
+# 	x = a*t + x2
+# 	y = b*t + y2
+# 	z = c*t + z2
+# 	# print (x,y,z)
+# 	return (x,y,z)
 
-for pt in rec[0]:
-	pt3D = projPoint((pt[0],pt[1],0), (a,b,c,d))
+# projRec = []
+# pt0 = rec[0][0]
+# org2D = projPoint((pt0[0],pt0[1],0), (a,b,c,d))
 
-	tmp1 = np.array([[1,0,0],[0,1,0]])
-	tmp2 = np.array([pt3D[0]-org2D[0],pt3D[1]-org2D[1],pt3D[2]-org2D[2]])
-	dot = np.dot(tmp1, tmp2)
-	print dot
+# for pt in rec[0]:
+# 	pt3D = projPoint((pt[0],pt[1],0), (a,b,c,d))
 
-	pt2D = (int(dot[0]), int(dot[1]))
-	projRec.append(pt2D)
+# 	tmp1 = np.array([[1,0,0],[0,1,0]])
+# 	tmp2 = np.array([pt3D[0]-org2D[0],pt3D[1]-org2D[1],pt3D[2]-org2D[2]])
+# 	dot = np.dot(tmp1, tmp2)
+# 	# print dot
 
-# print projRec
-rec.append(projRec)
+# 	pt2D = (int(dot[0]), int(dot[1]))
+# 	projRec.append(pt2D)
+
+
+# rec.append(projRec)
+
+src_points = np.float32(rec[0])
+dst_points = np.float32([(0,10),(w,10),(w,h-10),(0,h-10)])
+
+# compute the transform matrix and apply it
+M = cv2.getPerspectiveTransform(src_points,dst_points)
+ptImg = cv2.warpPerspective(img,M,(w,h))
+print ptImg
+
+x = trans.rotation_matrix(m.pi/2, [0, 0, 1], [1, 0, 0])
+print int( x[3][3])
+print trans.scale_matrix(2)
 
 # ===================================== Visualize ===================================== 
 # translate the cordinate
@@ -159,6 +173,7 @@ for x in rec:
 		else: cv2.line(img,x[i],x[i+1],c,d)
 
 
+# cv2.imshow("img",ptImg)
 cv2.imshow("image",img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
