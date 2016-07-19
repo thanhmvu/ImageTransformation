@@ -96,11 +96,16 @@ white = (255,255,255)
 """ ====================== Main code ====================== """
 ''' Framework
 Strategy 1: 
+=> 	(pt, angle, scale, ...) -----(transformations.py + other methods)---> (needed 3x3 matrices)
+=> 	(4 src pts) -------(M = M1 *M2 *M3 ...)-----> (4 dst pts) # appear to have a very small difference when changing angle and rotation
+=> 	original image ----(warpPerspective + M)----> transformed image
 
-=> 	(pt, angle, scale, ...) -----(transformations.py)---> (needed matrices)
-=> 	(4 src pts) -------------------(M1 *M2 *M3 ...)-----> (4 dst pts)
-	use this to transform (image corners) and (title corners)
-=> 	original image ----(warpPerspective + 8 pts)---> transformed image
+Strategy 2: 
+=> 	(pt, angle, scale, ...) -----(transformations.py + other methods)---> (needed 3x3 matrices)
+=> 	(4 src pts)_0 + img0 -------( M1 )-----> (4 dst pts)_1 + img1
+=> 	(4 src pts)_1 + img1 -------( M2 )-----> (4 dst pts)_2 + img2
+	...
+=> 	(4 src pts)_L + imgL -------( MN )-----> (4 dst pts)_N + imgN (final result)
 
 
 Notes:
@@ -132,7 +137,7 @@ M1 = convertMatrix(M1)
 M2 = tl(100,100)
 
 # =============================== rotation
-M3 = rt(30)
+M3 = rt(180)
 
 
 
@@ -143,7 +148,7 @@ img = cv2.warpPerspective(img,M2,(w,h))
 img = cv2.warpPerspective(img,M3,(w,h))
 
 # =====> another way to do it. but the result is different
-M = np.dot(M1,M2,M3)
+# M = np.dot(M1,M2,M3) # appear to have a very small difference when changing angle and rotation
 # img = cv2.warpPerspective(img,M,(w,h))
 
 
