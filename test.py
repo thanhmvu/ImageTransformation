@@ -42,138 +42,79 @@ def sc(W,H):
 					 [ 0, 0, 1]])
 
 
-""" ====================== Main code ====================== """
-img = np.zeros((700,1000,3), np.uint8) 
-# cv2.rectangle(img,pt1,pt2,(0,255,0),3)
+def localCoords(P):
+	# adopt from http://stackoverflow.com/questions/26369618/getting-local-2d-coordinates-of-vertices-of-a-planar-polygon-in-3d-space
+	# len(P) >= 3
+	loc0 = P[0]                      # local origin
+	locx = np.subtract(P[1],loc0)  	 # local X axis
+	normal = np.cross(locx, np.subtract(P[2],loc0)) # vector orthogonal to polygon plane
+	locy = np.cross(normal, locx)      # local Y axis
+
+	# normalize
+	locx /= np.linalg.norm(locx)
+	locy /= np.linalg.norm(locy)
+
+	local_coords = [(np.dot(np.subtract(p,loc0), locx),  # local X coordinate
+	                 np.dot(np.subtract(p,loc0), locy))  # local Y coordinate
+	                for p in P]
+	return local_coords
+
+
 blue = (255,0,0)
 green = (0,255,0)
 red = (0,0,255)
 white = (255,255,255)
 p = m.pi
 
+""" ====================== Main code ====================== """
+''' Framework
+Strategy 1: 
 
-o = (0,0)
-rec = []
-h,w = (200,300)
-rec.append([(0,0),(w,0),(w,h),(0,h)])
-
-# # translate
-# dx = 250; dy = 0
-# rec.append([transform(pt, tl(dx,dy)) for pt in rec[0]])
-
-# # rotate
-# rec.append([transform(pt, rt(60)) for pt in rec[0]])
-
-# # scale about origin
-# rec.append([transform(pt, sc(2,2)) for pt in rec[0]])
-
-# # combination
-# a = m.radians(45)
-# rec[0] = [transform(pt, tl(-50,-50)) for pt in rec[0]]
-# rec.append([transform(pt, np.array([[ 2*m.cos(a)	, 2*m.sin(a)	, 50],
-# 					 				[ -2*m.sin(a)	, 2*m.cos(a)	, 50],
-# 					 				[ 0		, 0		, 1	]])) for pt in rec[0]])
-# rec[0] = [transform(pt, tl(50,50)) for pt in rec[0]]
+=> 	(pt, angle, scale, ...) -----(transformations.py)---> (needed matrices)
+=> 	(4 src pts) -------------------(M1 *M2 *M3 ...)-----> (4 dst pts)
+	use this to transform (image corners) and (title corners)
+=> 	original image ----(warpPerspective + 8 pts)---> transformed image
 
 
+Note:
+- cv2.warpPerspective takes a 3x3 float matrix (not 4x4)
 
-# rec.append([transform(pt, np.array([[ 0.9638,   -0.0960,   0],
-# 					 				[ 0.2449,    1.3808,   0],
-# 					 				[ -0.0001,   0.0013,   1]])) for pt in rec[0]])
+'''
 
-# rec.append([transform(pt, np.dot(tl(150,-50),sc(2,2))) for pt in rec[0]])
-# rec.append([transform(pt, np.dot(sc(2,2),tl(150,-50))) for pt in rec[0]])
+# Draw an image
+h, w = (400,600)
+img = np.zeros((h,w,3), np.uint8) 
+img[:,:] = (150,150,150)
+offset = 50
+cv2.rectangle(img,(offset,offset),(w-offset,h-offset),blue,3)
 
-# x = [transform(pt, tl(150,-50)) for pt in rec[0]]
-# x = [transform(pt, sc(2,2)) for pt in x]
-# rec.append(x)
+# Generate the matrix
+point = (-w/2, h/2, w/2)
+normal = (-2, 0, 1)
+direction = None
+perspective = (-w, h/2, w)
+M = trans.projection_matrix(point, normal, direction, perspective)
 
-
-
-# ================================= Orthogonal =====
-# # center
-# (x0,y0,z0) = (w/2,h/2,0)
-# # R = max(w/2,h/2)
-
-# ### find the plane
-# # a point on the half sphere (S): (x-x0)^2 + (y-y0)^2 + (z-z0)^2 = R ^2
-# # x1 = randint(x0 - R, x0 + R)
-# # tmp = int(m.sqrt(R*R - (x1-x0)**2))
-# # y1 = randint(y0 - tmp, y0 + tmp)
-# (x1,y1,z1) = (-20,100, 50)
-# # z1 = int(m.sqrt(R*R - (x1-x0)**2 - (y1-y0)**2)) + z0 # z >= 0
-# # print x1,y1,z1
-
-# # vector n: (x1-x0, y1-y0, z1-z0)
-# (Nx,Ny,Nz) = (x1-x0, y1-y0, z1-z0)
-# # (P): Nx * (x-x1) + Ny * (y-y1) + Nz * (z-z1) = 0 = ax  + by + cz + d 
-# (a,b,c,d) = (Nx, Ny, Nz, -(Nx*x1 + Ny*y1 + Nz*z1))
-# # print (a,b,c,d)
-
-# def projPoint((x2,y2,z2), (a,b,c,d)):
-# 	# find the orthogonal projection of any point A onto that plane)
-# 	# line through A and perpendicular to (P)
-# 	# x = a*t + x2;  y = b*t + y2 ;  z = c*t + z2
-# 	# a(at + x2) + b(bt + y2) + c(ct + z2) + d = 0
-# 	t = float(-d -a*x2 -b*y2 -c*z2)/ (a*a + b*b + c*c)
-# 	x = a*t + x2
-# 	y = b*t + y2
-# 	z = c*t + z2
-# 	# print (x,y,z)
-# 	return (x,y,z)
-
-# projRec = []
-# pt0 = rec[0][0]
-# org2D = projPoint((pt0[0],pt0[1],0), (a,b,c,d))
-
-# for pt in rec[0]:
-# 	pt3D = projPoint((pt[0],pt[1],0), (a,b,c,d))
-
-# 	tmp1 = np.array([[1,0,0],[0,1,0]])
-# 	tmp2 = np.array([pt3D[0]-org2D[0],pt3D[1]-org2D[1],pt3D[2]-org2D[2]])
-# 	dot = np.dot(tmp1, tmp2)
-# 	# print dot
-
-# 	pt2D = (int(dot[0]), int(dot[1]))
-# 	projRec.append(pt2D)
+# Apply the matrix to transform points
+srcPts3D = [(0.0,0.0,0.0), (w*1.0,0.0,0.0), (w*1.0,h*1.0,0.0), (0.0,h*1.0,0.0)]
+dstPts3D = []
+for pt in srcPts3D:
+	homoPt = np.array([[pt[0]], [pt[1]], [pt[2]], [1]])
+	out = np.dot(M,homoPt)
+	dstPt = [out[0][0]/out[3][0],out[1][0]/out[3][0],out[2][0]/out[3][0]]
+	dstPts3D.append(dstPt)
 
 
-# rec.append(projRec)
+# Convert 3D coords to 2D coords
+srcPts2D = np.float32(localCoords(srcPts3D))
+dstPts2D = np.float32(localCoords(dstPts3D))
 
-src_points = np.float32(rec[0])
-dst_points = np.float32([(0,10),(w,10),(w,h-10),(0,h-10)])
-
-# compute the transform matrix and apply it
-M = cv2.getPerspectiveTransform(src_points,dst_points)
-ptImg = cv2.warpPerspective(img,M,(w,h))
-print ptImg
-
-x = trans.rotation_matrix(m.pi/2, [0, 0, 1], [1, 0, 0])
-print int( x[3][3])
-print trans.scale_matrix(2)
-
-# ===================================== Visualize ===================================== 
-# translate the cordinate
-dx = 200 	;	dy = 250
-o = transform(o, tl(dx,dy))
-for i,x in enumerate(rec):
-	rec[i] = [transform(pt, tl(dx,dy)) for pt in x]
-
-# Visualize
-cv2.line(img,(o[0]-1000,o[1]),(o[0]+1000,o[1]),white,1)
-cv2.line(img,(o[0],o[1]-1000),(o[0],o[1]+1000),white,1)
-for x in rec:
-	if x == rec[0]: c = red  
-	elif x == rec[len(rec)-1]: c = blue
-	else: c = green
-
-	d = 2 if x == rec[0] else 2
-	for i in range(len(x)): 
-		if i == len(x)-1: cv2.line(img,x[i],x[0],c,d)
-		else: cv2.line(img,x[i],x[i+1],c,d)
+# Apply the transformation to the image using the src and dst points
+M = cv2.getPerspectiveTransform(srcPts2D, dstPts2D)
+img = cv2.warpPerspective(img,M,(w,h))
 
 
-# cv2.imshow("img",ptImg)
+# Visualize 
 cv2.imshow("image",img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
