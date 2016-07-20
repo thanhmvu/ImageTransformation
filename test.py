@@ -8,7 +8,7 @@ import transformations as trans
 
 """ Experimenting planar perspective transformation """
 
-def drawPt(img,pt,color):
+def drawPt(img,pt,color,):
 	cv2.circle(img, pt, 3, color, -1)
 
 def ptToMat ((x,y)):
@@ -134,25 +134,46 @@ M1 = trans.projection_matrix(point, normal, direction, perspective)
 M1 = convertMatrix(M1)
 
 # =============================== translation
-M2 = tl(100,100)
+M2 = tl(50,50)
 
 # =============================== rotation
-M3 = rt(180)
+M3 = rt(30)
 
 
+
+# A test point
+A = (offset,h/3)
+drawPt(img,A,red)
 
 # Apply 3x3 matrix to transform the image
 # =====> one way to do it
-img = cv2.warpPerspective(img,M1,(w,h))
-img = cv2.warpPerspective(img,M2,(w,h))
-img = cv2.warpPerspective(img,M3,(w,h))
+img1 = img
+img1 = cv2.warpPerspective(img1,M1,(w,h))
+img1 = cv2.warpPerspective(img1,M2,(w,h))
+img1 = cv2.warpPerspective(img1,M3,(w,h))
 
-# =====> another way to do it. but the result is different
-# M = np.dot(M1,M2,M3) # appear to have a very small difference when changing angle and rotation
+A1 = A
+A1 = transform(A1,M1)
+A1 = transform(A1,M2)
+A1 = transform(A1,M3)
+cv2.circle(img1, A1, 5, green, 1)
+
+# =====> another way to do it.
+img2 = img
+M = np.dot(M1,M2)
+M = np.dot(M,M3)
+img2 = cv2.warpPerspective(img2,M,(w,h))
+
+A2 = A
+A2 = transform(A2,M)
+cv2.circle(img2, A2, 5, green, 1)
+
+# =====> another way to do it. but the result is different. It's because of the np.dot syntax
+# M = np.dot(M1,M2,M3) # appear to have a very small difference when changing angle and rotation  
 # img = cv2.warpPerspective(img,M,(w,h))
 
 
 # Visualize 
-cv2.imshow("image",img)
-cv2.waitKey(0)
+cv2.imshow("image1",img1) ; cv2.waitKey(0)
+cv2.imshow("image2",img2) ; cv2.waitKey(0)
 cv2.destroyAllWindows()
