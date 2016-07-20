@@ -122,22 +122,24 @@ img = np.zeros((h,w,3), np.uint8)
 img[:,:] = (150,150,150)
 offset = 50
 cv2.rectangle(img,(offset,offset),(w-offset,h-offset),blue,3)
+# cv2.imshow("image",img) ; cv2.waitKey(0)
 
 # =============================== perpespective matrix
 # Generate 4x4 perspective matrix
-point = (-w/2, h/2, w/2)
-normal = (-2, 0, 1)
-direction = None
-perspective = (-w, h/2, w)
-M1 = trans.projection_matrix(point, normal, direction, perspective)
-# Convert to 3x3 2D matrix
+posterCenter = [w*0.5,h*0.5,0.0]
+# Image plane
+planeOrigin = [-w*0.5, h*0.2, w*0.5] #[-w*0.5, h*0.5, w*0.5]
+normal = np.subtract(posterCenter,planeOrigin)
+
+perspective = np.subtract(planeOrigin, normal*4) 
+M1 = trans.projection_matrix(planeOrigin, normal, None, perspective)
 M1 = convertMatrix(M1)
 
 # =============================== translation
-M2 = tl(50,50)
+M2 = tl(100,100)
 
 # =============================== rotation
-M3 = rt(30)
+M3 = rt(20)
 
 
 
@@ -149,31 +151,25 @@ drawPt(img,A,red)
 # =====> one way to do it
 img1 = img
 img1 = cv2.warpPerspective(img1,M1,(w,h))
-img1 = cv2.warpPerspective(img1,M2,(w,h))
-img1 = cv2.warpPerspective(img1,M3,(w,h))
+# img1 = cv2.warpPerspective(img1,M2,(w,h))
+# img1 = cv2.warpPerspective(img1,M3,(w,h))
 
 A1 = A
 A1 = transform(A1,M1)
-A1 = transform(A1,M2)
-A1 = transform(A1,M3)
+# A1 = transform(A1,M2)
+# A1 = transform(A1,M3)
 cv2.circle(img1, A1, 5, green, 1)
-
-# =====> another way to do it.
-img2 = img
-M = np.dot(M1,M2)
-M = np.dot(M,M3)
-img2 = cv2.warpPerspective(img2,M,(w,h))
-
-A2 = A
-A2 = transform(A2,M)
-cv2.circle(img2, A2, 5, green, 1)
-
-# =====> another way to do it. but the result is different. It's because of the np.dot syntax
-# M = np.dot(M1,M2,M3) # appear to have a very small difference when changing angle and rotation  
-# img = cv2.warpPerspective(img,M,(w,h))
-
-
-# Visualize 
 cv2.imshow("image1",img1) ; cv2.waitKey(0)
-cv2.imshow("image2",img2) ; cv2.waitKey(0)
+
+# # =====> another way to do it.
+# img2 = img
+# M = np.dot(M1,M2)
+# M = np.dot(M,M3)
+# img2 = cv2.warpPerspective(img2,M,(w,h))
+
+# A2 = A
+# A2 = transform(A2,M)
+# cv2.circle(img2, A2, 5, green, 1)
+# cv2.imshow("image2",img2) ; cv2.waitKey(0)
+
 cv2.destroyAllWindows()
