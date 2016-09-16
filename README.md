@@ -1,5 +1,6 @@
-# cv2.rotation.python
+# Planer Rotation
 
-A set of methods that execute 2D image rotation with or without cropping.
+Since OpenCV does not seem to have a convenient way to rotate a 2D image without croping it. 
+Here is a set of methods that help execute the planar rotation with/without cropping.
 
-# Tech: Python, OpenCV
+[Tech] Python, OpenCV, Image Transformation
